@@ -1,63 +1,64 @@
 const express=require('express');
 const http=require('http');
 const bodyParser=require('body-parser');
+var Leaders = require('../models/leaders');
 
 const leaderRouter=express.Router();
 leaderRouter.use(bodyParser.json());
 
+
 leaderRouter.route('/')
 
-.all((req,res,next)=>{
-
-    res.statusCode=200;
-    res.setHeader('Content-Type','text/plain');
-    next();
+.get(function (req, res, next) {
+    Leaders.find({}, function (err, leader) {
+        if (err) throw err;
+        res.json(leader);
+    });
 })
 
-.get((req,res,next)=>{
+.post(function (req, res, next) {
+    Leaders.create(req.body, function (err, leader) {
+        if (err) throw err;
+        console.log('Dish created!');
+        var id = leader._id;
 
-    res.end('The leader will be notified');
+        res.writeHead(200, {
+            'Content-Type': 'text/plain'
+        });
+        res.end('Added the leader with id: ' + id);
+    });
 })
 
-.post((req,res,next)=>{
-
-    res.end('The leader will be added : '+req.body.name+' and message will be added as: '+req.body.description);
-})
-
-.put((req,res,next)=>{
-
-    res.statusCode=403;
-    res.end('PUT not supported');
-})
-
-.delete((req,res,next)=>{
-    
-    res.end('Deleted the leader from the WORLD!');
+.delete(function (req, res, next) {
+    Leaders.remove({}, function (err, resp) {
+        if (err) throw err;
+        res.json(resp);
+    });
 });
-
-//LEADER IDs
-
-
-leaderRouter.route('/:leaderID')
-
-.get((req,res,next)=>{
-    res.end('We will be giving Ruski leaderes with id: '+req.params.leaderID);
+	
+leaderRouter.route('/:leaderId')
+.get(function (req, res, next) {
+    Leaders.findById(req.params.leaderId, function (err, leader) {
+        if (err) throw err;
+        res.json(leader);
+    });
 })
 
-.post((req,res,next)=>{
-    res.end('POST not supported on leaders/'+req.params.leaderID);
-
+.put(function (req, res, next) {
+    Leaders.findByIdAndUpdate(req.params.leaderId, {
+        $set: req.body
+    }, {
+        new: true
+    }, function (err, leader) {
+        if (err) throw err;
+        res.json(leader);
+    });
 })
 
-.put((req,res,next)=>{
-   
-    res.write('updating the leader requested: '+req.params.leaderID+'\n');
-    res.end('Will update leader: '+req.body.name+' with the details: '+req.body.description);    
-})
-
-.delete((req,res,next)=>{
-    res.end('Deleting leader: '+req.params.leaderID );//DANGER!!!!
+.delete(function (req, res, next) {
+    Leaders.findByIdAndRemove(req.params.leaderId, function (err, resp) {        if (err) throw err;
+        res.json(resp);
+    });
 });
-
 
 module.exports=leaderRouter;

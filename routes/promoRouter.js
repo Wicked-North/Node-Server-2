@@ -1,27 +1,34 @@
 const express=require('express');
 const http=require('http');
 const bodyParser=require('body-parser');
+var Promotions = require('../models/promos');
+
 
 const promoRouter=express.Router();
 promoRouter.use(bodyParser.json());
 
 promoRouter.route('/')
 
-.all((req,res,next)=>{
-
-    res.statusCode=200;
-    res.setHeader('Content-Type','text/plain');
-    next();
-})
-
 .get((req,res,next)=>{
 
-    res.end('The promotions will be notified');
+    Promotions.find({}, (err, promo)=> {
+        if (err) throw err;
+        res.json(promo);
+    });
 })
 
 .post((req,res,next)=>{
 
-    res.end('The promotions will be added : '+req.body.name+' and message will be added as: '+req.body.description);
+    Promotions.create(req.body, (err, promo)=> {
+        if (err) throw err;
+        console.log('Promo!');
+        var id = promo._id;
+
+        res.writeHead(200, {
+            'Content-Type': 'text/plain'
+        });
+        res.end('Added the promo with id: ' + id);
+    });
 })
 
 .put((req,res,next)=>{
@@ -32,32 +39,49 @@ promoRouter.route('/')
 
 .delete((req,res,next)=>{
     
-    res.end('Deleted the promotions from the WORLD!');
+    Promotions.remove({},(err, resp)=>{
+        if (err) throw err;
+        res.json(resp);
+    });
 });
 
 //promotions IDs
 
 
-promoRouter.route('/:promotionsID')
+promoRouter.route('/:promotionID')
 
 .get((req,res,next)=>{
-    res.end('We will be giving Ruski promotionses with id: '+req.params.promotionsID);
-})
+    Promotions.findById(req.params.promotionID,(err, promo)=> {
+        if (err) throw err;
+        res.json(promo);
+    });})
 
 .post((req,res,next)=>{
-    res.end('POST not supported on promotionss/'+req.params.promotionsID);
-
+    Promotions.findByIdAndUpdate(req.params.promotionID, {
+        $set: req.body
+    }, {
+        new: true
+    },(err, promo)=> {
+        if (err) throw err;
+        res.json(promo);
+    });
 })
 
 .put((req,res,next)=>{
    
-    res.write('updating the promotions requested: '+req.params.promotionsID+'\n');
-    res.end('Will update promotions: '+req.body.name+' with the details: '+req.body.description);    
+    Promotions.findByIdAndRemove(req.params.promotionID,(err, resp) =>
+    { if (err) throw err;
+        res.json(resp);
+    });
 })
 
 .delete((req,res,next)=>{
-    res.end('Deleting promotions: '+req.params.promotionsID );//DANGER!!!!
-});
+    
+    Promotions.findByIdAndRemove(req.params.promotionID,(err, resp) =>
+    {if (err) throw err;
+        res.json(resp);
+        
+    });});
 
 
 module.exports=promoRouter;
