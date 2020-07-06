@@ -9,15 +9,15 @@ leaderRouter.use(bodyParser.json());
 
 leaderRouter.route('/')
 
-.get(function (req, res, next) {
-    Leaders.find({}, function (err, leader) {
+.get((req, res, next)=> {
+    Leaders.find({},(err, leader) =>{
         if (err) throw err;
         res.json(leader);
     });
 })
 
-.post(function (req, res, next) {
-    Leaders.create(req.body, function (err, leader) {
+.post((req, res, next)=> {
+    Leaders.create(req.body,(err, leader) => {
         if (err) throw err;
         console.log('Dish created!');
         var id = leader._id;
@@ -29,22 +29,22 @@ leaderRouter.route('/')
     });
 })
 
-.delete(function (req, res, next) {
-    Leaders.remove({}, function (err, resp) {
+.delete((req, res, next)=> {
+    Leaders.remove({},(err, resp)=>{
         if (err) throw err;
         res.json(resp);
     });
 });
 	
 leaderRouter.route('/:leaderId')
-.get(function (req, res, next) {
-    Leaders.findById(req.params.leaderId, function (err, leader) {
+.get((req, res, next)=> {
+    Leaders.findById(req.params.leaderId,(err, leader) =>{
         if (err) throw err;
         res.json(leader);
     });
 })
 
-.put(function (req, res, next) {
+.put((req, res, next)=> {
     Leaders.findByIdAndUpdate(req.params.leaderId, {
         $set: req.body
     }, {
@@ -55,8 +55,8 @@ leaderRouter.route('/:leaderId')
     });
 })
 
-.delete(function (req, res, next) {
-    Leaders.findByIdAndRemove(req.params.leaderId, function (err, resp) {        if (err) throw err;
+.delete((req, res, next)=> {
+    Leaders.findByIdAndRemove(req.params.leaderId,(err, resp)=>{        if (err) throw err;
         res.json(resp);
     });
 });
