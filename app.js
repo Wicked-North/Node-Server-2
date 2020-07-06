@@ -5,6 +5,10 @@ var cookieParser = require('cookie-parser');
 var logger = require('morgan');
 const mongoose=require('mongoose');
 const Dishes=require('./models/dishes');
+const Leaders=require('./models/leaders');
+
+const Promotions=require('./models/promos');
+
 
 const url='mongodb://127.0.0.1:27017/conFusion';
 
@@ -31,40 +35,54 @@ app.set('view engine', 'jade');
 app.use(logger('dev'));
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
-app.use(cookieParser());
+app.use(cookieParser('12345-67890-08776-99999'));
 
 function auth(req,res,next){
 
-  console.log(req.headers);
+  console.log(req.signedCookies);
 
-  var authHeader=req.headers.authorization;//headers and not header
-  if(!authHeader){
-    var err=new Error('Not Authenticated');
-    console.log('hello');
+  if(!req.signedCookies.user){
 
-    res.setHeader('WWW-Authenticate', 'Basic');
-    err.status=401; //Unauthorised
-    return next(err);
+    var authHeader=req.headers.authorization;//headers and not header
+
+    if(!authHeader){
+      var err=new Error('Not Authenticated');
+      console.log('hello');
+  
+      res.setHeader('WWW-Authenticate', 'Basic');
+      err.status=401; //Unauthorised
+      return next(err);
+    }
+    var auth=new Buffer.from(authHeader.split(' ')[1],'base64').toString().split(':');
+    var uname=auth[0];
+    var pass=auth[1];
+  
+   
+  
+    if(uname==='admin' && pass==='admin'){
+      res.cookie('user','admin',{signed:true});
+      next();
+    }else{
+      
+      var err=new Error('Not Authenticated');
+  
+      res.setHeader('WWW-Authenticate', 'Basic');
+      err.status=401; //Unauthorised
+      return next(err);
+    }
   }
-  var auth=new Buffer (authHeader.split(' ')[1],'base64').toString().split(':');
-  var uname=auth[0];
-  var pass=auth[1];
 
-  console.log(uname);
-  console.log(pass);
-
-
-  if(uname==='admin' && pass==='admin'){
-    next();
-  }
   else{
-    
-    var err=new Error('Not Authenticated');
+      if(req.signedCookies.user==='admin'){
+        next();
 
-    res.setHeader('WWW-Authenticate', 'Basic');
-    err.status=401; //Unauthorised
-    return next(err);
+      }else{
+        var err=new Error('Not Authenticated');
+        err.status=401; //Unauthorised
+        return next(err);
+      }
   }
+  
 
 }
 
